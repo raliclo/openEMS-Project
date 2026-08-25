@@ -245,7 +245,10 @@ function parse_args {
     exit $EINVAL
   fi
 
-  if [ "$BUILD_PY_EXT" -eq 0 ] && [ -n "${PYTHON_ARGS[*]}" ]; then
+  # ${PYTHON_ARGS[*]} on an empty array is an unbound variable under
+  # `set -u` in bash 3.2, which is what macOS ships. Use the same
+  # ${ARR[@]+...} guard this script already uses below.
+  if [ "$BUILD_PY_EXT" -eq 0 ] && [ -n "${PYTHON_ARGS[*]+${PYTHON_ARGS[*]}}" ]; then
     printf "%s\n" "--python must be enabled for ${PYTHON_ARGS[*]}"
     exit $EINVAL
   fi
