@@ -246,6 +246,11 @@ function parse_args {
       die "$INSTALL_DIR does not exist!"
     fi
 
+    # The download directory is created before it is resolved: on macOS
+    # "readlink -f" returns nonzero for a path that does not exist, which is
+    # fatal under "set -e". BUILD_DIR and INSTALL_DIR are checked above, so they
+    # already exist by this point.
+    mkdir -p "$DOWNLOAD_DIR"
     DOWNLOAD_DIR=$(readlink -f "$DOWNLOAD_DIR")
     BUILD_DIR=$(readlink -f "$BUILD_DIR")
     INSTALL_DIR=$(readlink -f "$INSTALL_DIR")
@@ -254,7 +259,10 @@ function parse_args {
 
 # default values
 DOWNLOAD_ONLY=0
-DOWNLOAD_DIR=$(readlink -f "./downloads")
+# Left unresolved here. This default is evaluated before parse_args, so on macOS
+# it aborted the script under "set -e" whenever ./downloads did not exist -- even
+# when the caller passed --download-dir and the default was never used.
+DOWNLOAD_DIR="./downloads"
 INSTALL_DIR=""
 BUILD_DIR=""
 
